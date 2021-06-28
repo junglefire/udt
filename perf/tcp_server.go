@@ -21,7 +21,7 @@ func init() {
 	flag.StringVar(&ip, "ip", "127.0.0.1", "server ip")	
 	flag.IntVar(&port, "port", 4444, "server port")	
 	flag.IntVar(&multiple, "multiple", 1, "DOP = multiple * num_of_cpu")	
-	flag.IntVar(&echo, "echo", 0, "echo mode")	
+	flag.IntVar(&echo, "echo", 1, "echo mode")	
 }
 
 /* 主函数 */
@@ -65,7 +65,7 @@ func routine_recvmsg(cid int, conn net.Conn) {
 	defer conn.Close()
 	for {
 		buf := make([]byte, 512)
-		_, err := conn.Read(buf)
+		nbytes, err := conn.Read(buf)
 		if err != nil {
 			if err.Error() == "EOF" {
 				log.Infof("EOF, routine exist!")
@@ -74,12 +74,11 @@ func routine_recvmsg(cid int, conn net.Conn) {
 			log.Infof("error reading: %v", err)
 			return //终止程序
 		}
-		log.Infof("echo %v", echo)
 		if echo == 0 {
 			log.Infof("#%v: %s", cid, buf)
 		} else {
 			log.Infof("#%v: %s", cid, buf)
-			conn.Write(buf)
+			conn.Write(buf[:nbytes])
 		}
 	}
 }

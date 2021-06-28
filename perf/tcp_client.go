@@ -21,7 +21,7 @@ var (
 /* 定义命令行参数 */
 func init() {
 	flag.StringVar(&ip, "ip", "127.0.0.1", "Server ip")
-	flag.IntVar(&port, "port", 4444, "Server port")
+	flag.IntVar(&port, "port", 8080, "Server port")
 	flag.IntVar(&loop, "loop", 10, "Test Loop")
 	flag.IntVar(&dop, "dop", 10, "Degree of Parallelism")
 	flag.IntVar(&number, "number", 10, "Number of messages per coroutine")
@@ -34,6 +34,7 @@ func main() {
 	log.Info("tcp client run...")
 
 	for l := 0; l < loop; l++ {
+		log.Infof("LOOP#%v...", l)
 		// 启动多个coroutine接收数据
 		ch_alarm := make(chan struct{})
 		for i := 0; i < dop; i++ {
@@ -48,7 +49,7 @@ func main() {
 }
 
 func routine_sendmsg(cid int, ch_alarm chan struct{}) {
-	X := strings.Repeat("@@@", 100)
+	X := strings.Repeat("*", 100)
 	// 连接服务器
 	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", ip, port))
 	if err != nil {
@@ -56,6 +57,9 @@ func routine_sendmsg(cid int, ch_alarm chan struct{}) {
 		ch_alarm <- struct{}{}
 		return
 	}
+
+	log.Infof("connect server `%s:%d` ok", ip, port);
+
 	defer conn.Close()
 	// 发送信息
 	for i := 0; i < number; i++ {
@@ -69,9 +73,9 @@ func routine_sendmsg(cid int, ch_alarm chan struct{}) {
 			continue
 		}
 		t2 := time.Now().UnixNano() / 1e6
-		log.Infof("ID: %v, [interval]: %v(ms)", cid, t2-t1)
-		// time.Sleep(time.Duration(2) * time.Second)
+		log.Infof("routine#%v, [interval]: %v(ms)", cid, t2-t1)
 	}
+	time.Sleep(time.Duration(1) * time.Second)
 	log.Infof("R#%v exist...", cid)
 	ch_alarm <- struct{}{}
 }
