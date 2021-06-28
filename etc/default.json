@@ -1,0 +1,29 @@
+{
+	"data.channel": {
+		"name": "OVERSEA",
+		"ingress": {
+			"protocol": "kcp",
+			"ip": "127.0.0.1",
+			"port": 4444
+		},
+		"egress": {
+			"protocol": "direct",
+			"ip": "",
+			"port": 0
+		}
+	},
+	"signal.channel": {
+		"protocol": "tcp",
+		"ip": "127.0.0.1",
+		"port": 5555,
+		"parallel": 10,
+		"data.channel": [
+			"127.0.0.1:4444",
+			"127.0.0.1:5555",
+			"127.0.0.1:6666"
+		]
+	},
+	"session.database": {
+		"dsn": "127.0.0.1:6379"
+	}
+}
