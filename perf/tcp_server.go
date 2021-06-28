@@ -75,6 +75,7 @@ func routine_recvmsg(cid int, conn net.Conn) {
 			return //终止程序
 		}
 		if echo {
+			log.Infof("#%v: %v", cid, buf)
 			conn.Write(buf)
 		} else {
 			log.Infof("#%v: %v", cid, buf)
