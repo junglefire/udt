@@ -13,6 +13,7 @@ var (
 	port int
 	ip string
 	multiple int
+	echo bool
 )
 
 /* 定义命令行参数 */
@@ -20,6 +21,7 @@ func init() {
 	flag.StringVar(&ip, "ip", "127.0.0.1", "server ip")	
 	flag.IntVar(&port, "port", 4444, "server port")	
 	flag.IntVar(&multiple, "multiple", 1, "DOP = multiple * num_of_cpu")	
+	flag.BoolVar(&echo, "echo", true, "echo mode")	
 }
 
 /* 主函数 */
@@ -72,6 +74,10 @@ func routine_recvmsg(cid int, conn net.Conn) {
 			log.Infof("error reading: %v", err)
 			return //终止程序
 		}
-		conn.Write(buf)
+		if echo {
+			conn.Write(buf)
+		} else {
+			log.Infof("#%v: %v", cid, buf)
+		}
 	}
 }
