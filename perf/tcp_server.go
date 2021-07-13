@@ -64,7 +64,7 @@ func routine_recvmsg(cid int, conn net.Conn) {
 	log.Info("goroutine run ...")
 	defer conn.Close()
 	for {
-		buf := make([]byte, 512)
+		buf := make([]byte, 128)
 		nbytes, err := conn.Read(buf)
 		if err != nil {
 			if err.Error() == "EOF" {

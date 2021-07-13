@@ -4,9 +4,10 @@ import (
 	"flag"
 	"fmt"
 	log "github.com/golang/glog"
-	"net"
-	"strings"
+	"strconv"
+	// "strings"
 	"time"
+	"net"
 )
 
 /* 存储命令行参数 */
@@ -17,6 +18,8 @@ var (
 	dop    int
 	number int
 )
+
+var idx int = 0
 
 /* 定义命令行参数 */
 func init() {
@@ -49,7 +52,6 @@ func main() {
 }
 
 func routine_sendmsg(cid int, ch_alarm chan struct{}) {
-	X := strings.Repeat("*", 100)
 	// 连接服务器
 	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", ip, port))
 	if err != nil {
@@ -64,6 +66,8 @@ func routine_sendmsg(cid int, ch_alarm chan struct{}) {
 	// 发送信息
 	for i := 0; i < number; i++ {
 		t1 := time.Now().UnixNano() / 1e6
+		X := "-->" + strconv.Itoa(idx)
+		idx += 1
 		conn.Write([]byte(X))
 		data := make([]byte, 1024)
 		_, err := conn.Read(data)
