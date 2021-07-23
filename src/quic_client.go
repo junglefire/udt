@@ -1,12 +1,16 @@
 package main
 
 import (
+	quic "github.com/lucas-clemente/quic-go"
 	log "github.com/golang/glog"
-	"strings"
+	"crypto/tls"
+	// "strings"
+	"context"
 	"flag"
-	"time"
+	// "time"
 	"fmt"
-	"net"
+	// "net"
+	"io"
 )
 
 /* 存储命令行参数 */
@@ -17,6 +21,8 @@ var (
 	dop int
 	number int
 )
+
+const message = "foobar"
 
 /* 定义命令行参数 */
 func init() {
@@ -31,7 +37,7 @@ func init() {
 func main() {
 	flag.Parse()
 	defer log.Flush()
-	log.Info("tcp client run...")
+	log.Info("quic client run...")
 
 	for l := 0; l < loop; l++ {
 		// 启动多个coroutine接收数据
@@ -48,32 +54,33 @@ func main() {
 }
 
 func routine_sendmsg(cid int, ch_alarm chan struct{}) {
-	X := strings.Repeat("@$", 100)
-	log.Infof("R#%v send message: %s", cid, X)
-	// 连接服务器
-	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", ip, port))
+	tlsConf := &tls.Config{
+		InsecureSkipVerify: true,
+		NextProtos:         []string{"quic-echo-example"},
+	}
+
+	session, err := quic.DialAddr(fmt.Sprintf("%s:%d", ip, port), tlsConf, nil)
 	if err != nil {
-		log.Infof("DialUDP() failed, err: %v", err)
-		ch_alarm <- struct{}{}
+		return
+	}
+
+	stream, err := session.OpenStreamSync(context.Background())
+	if err != nil {
 		return 
 	}
-	defer conn.Close()
-	// 发送信息
-	for i := 0; i < number; i++ {
-		t1 := time.Now().UnixNano() / 1e6
-		conn.Write([]byte(X))
-		data := make([]byte, 1024)
-		_, err := conn.Read(data)
-		if err != nil {
-			log.Infof("read message failed, err: %v", err)
-			log.Infof("[interval]: %v(ms)", -1)
-			continue
-		}
-		t2 := time.Now().UnixNano() / 1e6
-		if i%1000==0 {
-			log.Infof("[interval]: %v(ms)", t2-t1)
-		}
+
+	fmt.Printf("Client: Sending '%s'\n", message)
+	_, err = stream.Write([]byte(message))
+	if err != nil {
+		return 
 	}
+
+	buf := make([]byte, len(message))
+	_, err = io.ReadFull(stream, buf)
+	if err != nil {
+		return 
+	}
+	fmt.Printf("Client: Got '%s'\n", buf)
 	log.Infof("R#%v exist...", cid)
 	ch_alarm <- struct{}{}
 }
