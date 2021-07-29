@@ -30,7 +30,7 @@ func init() {
 	flag.IntVar(&multiple, "multiple", 1, "DOP = multiple * num_of_cpu")	
 }
 
-const message = "foobar"
+const message = "PING"
 
 /* 主函数 */
 func main() {
@@ -52,6 +52,8 @@ func main() {
 		return 
 	}
 
+	log.Infof("quic server listen on `%s:%d`", ip, port)
+
 	// 接收请求，每个客户端启动一个协程处理
 	cid := 0
 	for {
@@ -71,16 +73,10 @@ func main() {
 }
 
 func lstn(cid int, stream quic.Stream) {
+	buf := make([]byte, 1024)
+
 	for {
-		// Echo through the loggingWriter
-		/*
-		_, err := io.Copy(loggingWriter{stream}, stream)
-		if err != nil {
-			break
-		}
-		*/
-		buf := make([]byte, len(message))
-		_, err := io.ReadFull(stream, buf)
+		_, err := io.Reader.Read(stream, buf)
 		if err != nil {
 			return 
 		}
